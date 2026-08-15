@@ -14,16 +14,11 @@
 
 ## Executive Summary
 
-**Recommended Stack: Supabase (Primary) with PocketBase (Alternative)**
+> **Decision update (August 14, 2026):** This research compared several backend platforms. Its Supabase recommendation is superseded. Tether will use **Neon Postgres** for the database and **Railway** for the API, jobs, authorization, and real-time gateway. See the [current architecture decision](../architecture/neon-railway-architecture.md).
 
-For a bootstrapped couples app, **Supabase** emerges as the optimal choice, offering:
-- Generous free tier (500MB DB, 2GB bandwidth, 50K MAU)
-- PostgreSQL with Row Level Security for privacy controls
-- Built-in real-time subscriptions
-- Comprehensive authentication
-- File storage with CDN
-- Excellent developer experience with auto-generated TypeScript types
-- Production-ready scalability
+**Current recommended stack: Neon Postgres + Railway backend**
+
+This split gives Tether standard PostgreSQL plus Neon branches and schema diffs for safe migrations, without coupling the database to the application runtime. Railway owns the API surface, background work, and real-time delivery. Authentication and media storage are separate services.
 
 **Alternative for MVP/Low Budget: PocketBase**
 - Zero infrastructure costs (self-hosted)
@@ -1062,7 +1057,7 @@ match /couples/{coupleId}/memories/{memoryId}/{photo} {
 
 ## 6. Implementation Recommendations
 
-### Recommended Stack: Supabase + React Native
+### Historical Stack: Supabase + React Native
 
 **Architecture:**
 ```
@@ -1412,11 +1407,13 @@ Deno.serve(async (req) => {
 
 ---
 
-## 8. Final Recommendation
+## 8. Superseded Final Recommendation
+
+> Do not implement this section's Supabase-first stack. Use the [Neon + Railway architecture decision](../architecture/neon-railway-architecture.md) instead. The platform comparisons below are retained for research context.
 
 ### For Your Bootstrapped Couples App:
 
-**Go with Supabase for production launch.**
+**Historical conclusion: go with Supabase for production launch. This is superseded by Neon + Railway.**
 
 **Reasoning:**
 1. **Perfect data model fit:** PostgreSQL excels at relational data (calendars, budgets, timelines, places, memories)

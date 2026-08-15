@@ -5,6 +5,8 @@ Research Date: August 2026
 
 This document provides comprehensive research and recommendations for authentication, push notifications, media storage, and analytics services optimized for indie developers building a mobile couples app. All recommendations prioritize cost-effectiveness and ease of development.
 
+> **Decision update (August 14, 2026):** The Supabase-first recommendations in this historical comparison are superseded. Tether uses Neon for Postgres and Railway for its backend. Use Clerk for authentication, Cloudflare R2 for media, and Expo Push for notifications. The Railway backend validates identity tokens and applies authorization; it is not delegated to the database host. See the [current architecture decision](../architecture/neon-railway-architecture.md).
+
 ---
 
 ## 1. Authentication
@@ -50,7 +52,9 @@ For a couples app where two partners need to link accounts, you would:
 2. Store relationship metadata in a separate table (e.g., `couples` table)
 3. Implement custom privacy controls through Row Level Security (RLS) policies
 
-### Recommendation: SUPABASE AUTH
+### Superseded Recommendation: SUPABASE AUTH
+
+> Current decision: use Clerk for application identity. Partner linking is a Tether backend workflow stored in `couples` and `couple_members`; it is not an authentication-provider identity-linking feature.
 
 **Why:**
 - **Cost**: 6x cheaper than Clerk at 100K users ($162 vs $1,000/month)
@@ -535,7 +539,9 @@ A couples app handles sensitive relationship data, so privacy is critical:
 
 ---
 
-## Final Recommendation: Supabase-First Stack (Option 1)
+## Superseded Final Recommendation: Supabase-First Stack (Option 1)
+
+> Do not implement this Supabase-first stack. The accepted stack is Neon Postgres + Railway backend + Clerk + Cloudflare R2 + Expo Push. See the [current architecture decision](../architecture/neon-railway-architecture.md).
 
 **For an indie developer building a couples app, go with Option 1 (Supabase-First Stack):**
 
@@ -627,7 +633,7 @@ A couples app handles sensitive relationship data, so privacy is critical:
 
 ## Key Takeaways
 
-1. **Start simple**: Use Supabase-first stack to ship faster
+1. **Start simple**: Use the accepted Neon + Railway stack; this Supabase-first comparison is retained only for context
 2. **Optimize later**: Migrate to R2 only when storage costs become significant
 3. **Leverage free tiers**: You can build to 50K users on ~$33/month
 4. **Plan for privacy**: Supabase RLS is perfect for couples app privacy controls

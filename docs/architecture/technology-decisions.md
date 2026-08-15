@@ -1,6 +1,6 @@
 # Technology Decision Document - Tether Couples Relationship App
 **Date:** August 14, 2026
-**Version:** 1.0
+**Version:** 1.1
 **Project:** Tether - Shared Operating System for Couples
 
 ---
@@ -18,17 +18,20 @@ This document outlines the complete technology stack for building Tether, a mobi
 | Category | Technology | Monthly Cost (MVP) |
 |----------|-----------|-------------------|
 | **Mobile Framework** | React Native + Expo | $0 |
-| **Backend/Database** | Supabase (PostgreSQL + Real-time) | $0 (Free tier) |
+| **Backend** | Railway (API, jobs, real-time gateway) | Usage-based |
+| **Database** | Neon Postgres | Usage-based |
 | **AI Integration** | OpenRouter + On-device (Llama) | $0-70 |
 | **Financial APIs** | Manual entry MVP → Teller (later) | $0 |
 | **Maps & Location** | MapLibre + OpenFreeMap | $0 |
-| **Authentication** | Supabase Auth | $0 |
+| **Authentication** | Clerk | Plan-dependent |
 | **Push Notifications** | Expo Push Notifications | $0 |
 | **Media Storage** | Cloudflare R2 + CDN | $1.50 |
 | **Analytics** | PostHog | $0 |
 | **Error Tracking** | Sentry | $0 |
 
-**Total Estimated Cost (MVP):** $1.50 - $71.50/month
+**Current architecture decision:** [Neon + Railway architecture decision](./neon-railway-architecture.md). It supersedes every Supabase-first recommendation below. Supabase references remain only as historical comparison material; they are not implementation instructions.
+
+**Total Estimated Cost (MVP):** Confirm current service pricing before launch; Neon, Railway, and Clerk are billed independently.
 
 ---
 
@@ -97,7 +100,7 @@ This document outlines the complete technology stack for building Tether, a mobi
 
 **Weeks 1-4: Foundation**
 - Expo managed workflow setup
-- Supabase authentication integration
+- Clerk authentication integration and Railway JWT verification
 - Basic UI framework (React Navigation)
 - Real-time database schema
 
@@ -125,7 +128,9 @@ This document outlines the complete technology stack for building Tether, a mobi
 
 ## 2. Backend Infrastructure & Database
 
-### Decision: Supabase (PostgreSQL + Real-time + Auth + Storage)
+### Superseded Decision: Supabase (PostgreSQL + Real-time + Auth + Storage)
+
+> Historical comparison only. Tether's accepted implementation is Neon for Postgres, Railway for backend/runtime, Clerk for authentication, Railway-delivered real-time updates, and Cloudflare R2 for media. See the [current architecture decision](./neon-railway-architecture.md).
 
 #### Why Supabase?
 
@@ -524,7 +529,9 @@ async function geocode(address) {
 
 ## 6. Authentication & Push Notifications
 
-### Authentication: Supabase Auth
+### Superseded Authentication Option: Supabase Auth
+
+> Current decision: Clerk handles identity; the Railway backend validates Clerk JWTs and enforces couple membership and visibility. See the [current architecture decision](./neon-railway-architecture.md).
 
 **Why Supabase Auth:**
 - **Cost:** 6x cheaper than Clerk at scale
@@ -638,16 +645,9 @@ await fetch('https://exp.host/--/api/v2/push/send', {
 
 #### Recommendation
 
-**For MVP:** Start with Supabase Storage (Pro plan $25/month)
-- Simplest implementation
-- Image optimization built-in
-- Part of existing Supabase stack
+**For MVP:** Use Cloudflare R2 with signed uploads/downloads. This is the selected media store for the Neon + Railway stack.
 
-**At Scale (>500GB):** Migrate to Cloudflare R2
-- Keep Supabase for auth/database
-- Move media to R2
-- Save $500-1,000/month on storage/egress
-- Migration effort: ~1 week
+**At Scale (>500GB):** Continue with Cloudflare R2 and add Cloudflare Images or an image-processing worker if required.
 
 #### Implementation
 
@@ -750,9 +750,9 @@ Sentry.init({
 
 ```
 Mobile App (React Native + Expo)
-  ├─ Authentication: Supabase Auth
-  ├─ Database: Supabase PostgreSQL
-  ├─ Real-time: Supabase Realtime
+  ├─ Authentication: Clerk
+  ├─ API, jobs, and real-time: Railway
+  ├─ Database: Neon PostgreSQL
   ├─ Storage: Cloudflare R2 + CDN
   ├─ Maps: MapLibre Native + OpenFreeMap
   ├─ AI: OpenRouter + On-device (Llama)
@@ -773,9 +773,9 @@ External Services:
 | Component | Technology | Free Tier | Paid Cost | Notes |
 |-----------|-----------|-----------|-----------|-------|
 | **Frontend** | React Native + Expo | Unlimited | $0 | Best AI integration |
-| **Backend** | Supabase | 50K MAU | $25/mo Pro | PostgreSQL + Real-time |
-| **Database** | PostgreSQL | 500MB | Included | Ideal for relational data |
-| **Auth** | Supabase Auth | 50K MAU | $0.00325/MAU | 6x cheaper than Clerk |
+| **Backend** | Railway | Varies | Usage-based | API, jobs, and real-time gateway |
+| **Database** | Neon Postgres | Varies | Usage-based | Branching and schema diffs |
+| **Auth** | Clerk | Varies | Plan-dependent | Mobile identity and JWTs |
 | **Storage** | Cloudflare R2 | 10GB | $0.015/GB | Zero egress fees |
 | **CDN** | Cloudflare | Unlimited | $0 | Free tier sufficient |
 | **AI Gateway** | OpenRouter | 25 free models | 5.5% + usage | 373+ models |
@@ -864,9 +864,10 @@ External Services:
 
 **Week 1-2: Setup**
 - [ ] Initialize React Native + Expo project
-- [ ] Setup Supabase project (free tier)
+- [ ] Create Neon project and separate development/production branches
+- [ ] Create Railway API service and configure Neon connection strings
 - [ ] Configure authentication (email, Google, Apple)
-- [ ] Design PostgreSQL schema with RLS policies
+- [ ] Add Drizzle schema, migrations, and RLS policies
 - [ ] Setup development environment
 
 **Week 3-4: Core Features**
@@ -954,11 +955,11 @@ External Services:
 
 ### Vendor Lock-in
 
-**Risk:** Dependency on single vendor (Supabase, OpenRouter)
+**Risk:** Dependency on service vendors (Neon, Railway, Clerk, OpenRouter)
 
 **Mitigation:**
-- Supabase is open-source (can self-host)
 - PostgreSQL is standard (can migrate)
+- Database migrations are versioned in Git and can run on another Postgres host
 - OpenRouter is model-agnostic (can switch to LiteLLM)
 - Keep direct provider API keys as backup
 
@@ -968,9 +969,9 @@ External Services:
 
 **Mitigation:**
 - Row Level Security at database level
-- Can self-host Supabase if needed
+- The Railway API enforces authorization and Postgres RLS provides defense in depth
 - On-device AI for sensitive operations
-- GDPR compliance built into stack (PostHog, Supabase)
+- Verify data-processing agreements and regional requirements for each provider before launch
 - Clear privacy controls in UI
 
 ---
@@ -997,7 +998,7 @@ External Services:
 - 84% cost savings vs all-frontier models
 
 **4. Privacy-Ready**
-- Database-level RLS (Supabase)
+- Railway authorization plus database-level RLS
 - On-device AI for sensitive data
 - Self-hosting options available
 - GDPR compliant
@@ -1018,12 +1019,11 @@ External Services:
 
 ## 14. When to Reconsider Choices
 
-### Switch from Supabase to Custom Backend
+### Migrate Neon or Railway if requirements change
 
 **When:**
 - Reaching 500K+ couples
-- Need features Supabase doesn't support
-- Want to reduce per-MAU costs
+- Need a different database region, availability model, or runtime
 - Have DevOps team
 
 **Effort:** 2-3 months migration
@@ -1037,12 +1037,10 @@ External Services:
 
 **Effort:** 2-4 weeks integration
 
-### Migrate Storage from Supabase to R2
+### Change media implementation
 
 **When:**
-- Storage exceeds 500GB
-- Egress costs become significant
-- Media-heavy usage patterns
+- Cloudflare R2 is already the chosen media store; add image processing only when needed
 
 **Effort:** 1 week migration
 **Savings:** $500-1,000/month
@@ -1095,7 +1093,7 @@ This technology stack provides the optimal balance of **cost-effectiveness**, **
 
 1. **Start for <$60/month** with generous free tiers
 2. **React Native + Expo** provides best-in-class AI integration
-3. **Supabase** offers perfect fit for relational data with privacy controls
+3. **Neon + Railway** separates Postgres from application runtime while making migrations and bug fixes reviewable
 4. **Hybrid AI approach** saves 84% vs all-cloud
 5. **Free map services** eliminate major cost center
 6. **Cloudflare R2** saves $500-1,000/month at scale
@@ -1103,7 +1101,7 @@ This technology stack provides the optimal balance of **cost-effectiveness**, **
 **Next Steps:**
 
 1. Create Expo project
-2. Setup Supabase (free tier)
+2. Create Neon development and production branches, then deploy the Railway API
 3. Implement authentication and couples pairing
 4. Build manual transaction entry
 5. Integrate MapLibre for saved places

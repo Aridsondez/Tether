@@ -47,6 +47,8 @@ Tether helps both partners maintain individual identities while creating a share
 
 Browse the [documentation index](./docs/README.md) for every document, grouped by product, architecture, backend, backend features, and AI.
 
+The current backend decision is [Neon Postgres + Railway](./docs/architecture/neon-railway-architecture.md), with schema migrations versioned in the repository.
+
 For detailed feature specifications, see [Product overview](./docs/product/overview.md).
 
 For development planning and epic breakdown, see [Epic plan](./docs/product/epics.md).

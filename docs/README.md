@@ -10,6 +10,7 @@ This directory groups documentation by the part of the product it informs.
 ## Architecture
 
 - [Technology decisions](./architecture/technology-decisions.md) — recommended platform and service stack
+- [Neon + Railway architecture decision](./architecture/neon-railway-architecture.md) — current database, backend, authorization, and migration workflow
 
 ## Backend
 
