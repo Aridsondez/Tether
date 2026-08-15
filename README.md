@@ -38,14 +38,18 @@ Tether helps both partners maintain individual identities while creating a share
 
 ## Project Structure
 
-- `OVERVIEW.md` - Complete product specification and feature descriptions
-- `EPICS.md` - Epic breakdown with user stories and technical subtasks
+- `docs/product/overview.md` - Complete product specification and feature descriptions
+- `docs/product/epics.md` - Epic breakdown with user stories and technical subtasks
+- `docs/backend/` - Backend infrastructure, services, and backend feature integrations
+- `docs/ai/` - AI and LLM architecture research
 
 ## Documentation
 
-For detailed feature specifications, see [OVERVIEW.md](./OVERVIEW.md).
+Browse the [documentation index](./docs/README.md) for every document, grouped by product, architecture, backend, backend features, and AI.
 
-For development planning and epic breakdown, see [EPICS.md](./EPICS.md).
+For detailed feature specifications, see [Product overview](./docs/product/overview.md).
+
+For development planning and epic breakdown, see [Epic plan](./docs/product/epics.md).
 
 ## Development Status
 
