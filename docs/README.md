@@ -6,6 +6,7 @@ This directory groups documentation by the part of the product it informs.
 
 - [Product overview](./product/overview.md) — product scope, features, and principles
 - [Epic plan](./product/epics.md) — user stories and implementation subtasks
+- [Priorities](./product/priorities/README.md) — epics and tickets, organized P0/P1/P2/backlog
 
 ## Architecture
 

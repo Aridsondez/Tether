@@ -20,6 +20,12 @@ function userMessage(error: unknown) {
 export default function TimelineScreen() {
   const { getToken, isSignedIn } = useAuth();
   const tokenRef = useRef<string | null>(null);
+  // getToken's identity from useAuth() isn't stable across renders — depending
+  // on it directly would rerun these effects (and refetch) on every render.
+  const getTokenRef = useRef(getToken);
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
   const params = useLocalSearchParams<{ openTimelineId?: string; openItemId?: string }>();
 
   const [timelines, setTimelines] = useState<Timeline[]>([]);
@@ -35,12 +41,12 @@ export default function TimelineScreen() {
   const [colors, setColors] = useState<OwnerColors>({ mine: PARTNER_A, partner: PARTNER_B });
 
   const loadTimelines = useCallback(async () => {
-    const token = await getToken();
+    const token = await getTokenRef.current();
     if (!token) return;
     tokenRef.current = token;
     const { timelines: loaded } = await tetherApi.listTimelines(token);
     setTimelines(loaded);
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -58,7 +64,7 @@ export default function TimelineScreen() {
   useEffect(() => {
     if (!isSignedIn) return;
     (async () => {
-      const token = await getToken();
+      const token = await getTokenRef.current();
       if (!token) return;
       try {
         const me = await tetherApi.me(token);
@@ -70,7 +76,7 @@ export default function TimelineScreen() {
         // Falls back to the default indigo/rose pairing — not worth failing the timeline over.
       }
     })();
-  }, [getToken, isSignedIn]);
+  }, [isSignedIn]);
 
   // Landing side of a calendar deep link: jump straight to a milestone's timeline.
   const handledDeepLinkRef = useRef<string | null>(null);

@@ -39,6 +39,12 @@ export default function MapScreen() {
   // render underneath it and become unreachable.
   const tabBarClearance = (insets.bottom > 0 ? 83 : 49) + 16;
   const tokenRef = useRef<string | null>(null);
+  // getToken's identity from useAuth() isn't stable across renders — depending
+  // on it directly would rerun these effects (and refetch) on every render.
+  const getTokenRef = useRef(getToken);
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
   const mapRef = useRef<MapView>(null);
 
   const [region, setRegion] = useState<Region | null>(null);
@@ -57,12 +63,12 @@ export default function MapScreen() {
   const [partnerColor, setPartnerColor] = useState<string>(PARTNER_B);
 
   const loadPlaces = useCallback(async () => {
-    const token = await getToken();
+    const token = await getTokenRef.current();
     if (!token) return;
     tokenRef.current = token;
     const { places: loaded } = await tetherApi.listPlaces(token);
     setPlaces(loaded);
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -80,7 +86,7 @@ export default function MapScreen() {
   useEffect(() => {
     if (!isSignedIn) return;
     (async () => {
-      const token = await getToken();
+      const token = await getTokenRef.current();
       if (!token) return;
       try {
         const me = await tetherApi.me(token);
@@ -90,7 +96,7 @@ export default function MapScreen() {
         // Falls back to the default indigo/rose pairing — not worth failing the map over.
       }
     })();
-  }, [getToken, isSignedIn]);
+  }, [isSignedIn]);
 
   useEffect(() => {
     (async () => {

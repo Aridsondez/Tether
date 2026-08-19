@@ -1,6 +1,6 @@
 # Created make file to run some commands
 
-.PHONY: help fe fe-iphone be migrate ios-device eas-login eas-register-device eas-build-ios eas-build-ios-development eas-build-ios-production
+.PHONY: help fe fe-iphone be migrate ios-device eas-login eas-register-device eas-build-ios eas-build-ios-development eas-build-ios-production test test-api test-mobile
 
 help:
 	@echo "List of commands you can call"
@@ -14,6 +14,9 @@ help:
 	@echo "eas-build-ios - Create a cloud-built, installable internal iPhone build"
 	@echo "eas-build-ios-development - Create a dev client required for Plaid Link"
 	@echo "eas-build-ios-production - Create an App Store/TestFlight iOS build"
+	@echo "test - Runs the API and mobile test suites"
+	@echo "test-api - Runs the FastAPI backend's pytest suite"
+	@echo "test-mobile - Runs the Expo mobile app's Jest suite"
 
 fe:
 	@$(MAKE) fe-iphone
@@ -72,6 +75,20 @@ eas-build-ios-production:
 be: 
 	echo "Starting Backend Fast API service"
 	cd apps/api/ && source .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+test: test-api test-mobile
+
+# Installs pytest (and any other test-only deps) into the existing venv on
+# first run, then runs the suite. Requires apps/api/.venv to already exist.
+test-api:
+	@cd apps/api && \
+	test -d .venv || { echo ".venv not found in apps/api. Create it before running tests."; exit 1; }; \
+	source .venv/bin/activate && \
+	pip install -q -r requirements-dev.txt && \
+	pytest
+
+test-mobile:
+	@cd apps/mobile && npm test
 
 migrate:
 	@cd apps/api && \
