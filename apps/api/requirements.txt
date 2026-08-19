@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+python-dotenv==1.2.2
+clerk-backend-api==7.0.0
+psycopg[binary,pool]>=3.2,<4
+icalendar>=6.0,<7
+recurring-ical-events>=3.4,<4
+plaid-python>=42,<43

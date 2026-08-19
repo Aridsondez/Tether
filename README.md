@@ -49,6 +49,16 @@ Browse the [documentation index](./docs/README.md) for every document, grouped b
 
 The current backend decision is [Neon Postgres + Railway](./docs/architecture/neon-railway-architecture.md), with schema migrations versioned in the repository.
 
+## Database
+
+The initial relationship-access schema is in [`apps/api/migrations/0001_initial_schema.sql`](./apps/api/migrations/0001_initial_schema.sql). It creates users, couples, membership and invitation flows, profiles, and field-level preference privacy controls. `make migrate` records each applied migration and runs only outstanding files. Run it only against the direct Neon connection:
+
+```bash
+make migrate
+```
+
+The backend must set `SET LOCAL app.user_id = '<Clerk user id>'` for every database transaction so the included row-level-security policies can scope records to the authenticated user and their active relationship.
+
 For detailed feature specifications, see [Product overview](./docs/product/overview.md).
 
 For development planning and epic breakdown, see [Epic plan](./docs/product/epics.md).
